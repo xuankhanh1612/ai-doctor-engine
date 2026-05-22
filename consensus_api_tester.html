@@ -1,0 +1,397 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.wrap{padding:1rem 0;display:flex;flex-direction:column;gap:16px;font-size:13px;color:var(--color-text-primary)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.label{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.field-row{display:grid;grid-template-columns:100px 1fr;align-items:center;gap:8px;margin-bottom:8px}
+.field-row:last-child{margin-bottom:0}
+.section-title{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:10px}
+.method-btns{display:flex;gap:6px;flex-wrap:wrap}
+.mbtn{padding:5px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.mbtn:hover{border-color:var(--color-border-primary);color:var(--color-text-primary)}
+.mbtn.active{background:#EEEDFE;border-color:#AFA9EC;color:#534AB7}
+.agent-grid{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.agent-row{display:grid;grid-template-columns:90px 90px 1fr 80px 30px;gap:6px;align-items:center}
+.agent-row input[type=text]{font-size:12px;padding:4px 8px;height:30px}
+.agent-row input[type=range]{height:24px}
+.conf-val{font-size:12px;font-weight:500;color:#534AB7;text-align:center;min-width:30px}
+.remove-btn{background:transparent;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:16px;padding:2px;line-height:1;transition:color .15s}
+.remove-btn:hover{color:var(--color-text-danger,#E24B4A)}
+.add-btn{padding:5px 12px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:12px;cursor:pointer;transition:all .15s;margin-top:4px}
+.add-btn:hover{border-color:var(--color-border-primary);color:var(--color-text-primary)}
+.send-btn{padding:7px 20px;border-radius:var(--border-radius-md);border:none;background:#7F77DD;color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:6px}
+.send-btn:hover{background:#534AB7}
+.send-btn:disabled{background:var(--color-border-secondary);cursor:not-allowed}
+.run-all-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-text-secondary);cursor:pointer}
+.toggle-track{position:relative;width:32px;height:18px;background:var(--color-border-secondary);border-radius:9px;transition:background .2s;display:inline-block;flex-shrink:0}
+.toggle-track:has(input:checked){background:#7F77DD}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none}
+#run-all-input:checked~.toggle-thumb{transform:translateX(14px)}
+.status-line{font-size:12px;display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-ok{background:#1D9E75}
+.dot-err{background:#E24B4A}
+.dot-loading{background:#EF9F27;animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.result-block{display:none;flex-direction:column;gap:12px}
+.result-block.show{display:flex}
+.res-metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.metric-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.metric-val{font-size:18px;font-weight:500}
+.risk-low{color:#1D9E75}
+.risk-moderate{color:#BA7517}
+.risk-high{color:#D85A30}
+.risk-critical{color:#E24B4A}
+.agent-bars{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:grid;grid-template-columns:90px 1fr 38px;align-items:center;gap:8px;font-size:12px}
+.bar-track{background:var(--color-background-secondary);border-radius:4px;height:6px;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+.bar-fill{height:100%;border-radius:4px;background:#7F77DD;transition:width .5s ease}
+.diagnosis-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px;line-height:1.6;color:var(--color-text-primary)}
+.rec-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:var(--color-text-secondary);line-height:1.6;border-left:2px solid #7F77DD;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0}
+.compare-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.compare-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;border:0.5px solid var(--color-border-tertiary)}
+.compare-card.winner{border-color:#AFA9EC;background:#EEEDFE}
+.compare-method{font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.compare-conf{font-size:20px;font-weight:500;color:#534AB7}
+.compare-agree{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.raw-pre{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;font-family:var(--font-mono,monospace);font-size:11px;color:var(--color-text-secondary);overflow-x:auto;max-height:200px;overflow-y:auto;white-space:pre}
+.tabs-row{display:flex;gap:4px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:12px}
+.tab{padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;background:transparent;border-left:none;border-right:none;border-top:none;transition:all .15s}
+.tab.active{color:var(--color-text-primary);border-bottom-color:#7F77DD}
+.err-box{background:#FCEBEB;border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:#A32D2D;line-height:1.5}
+</style>
+
+<h2 class="sr-only">Consensus Engine API tester — send requests to localhost:8000 and view results</h2>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="section-title">Endpoint</div>
+    <div class="row" style="gap:8px">
+      <div style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:6px 12px;font-size:12px;font-family:var(--font-mono,monospace);color:var(--color-text-secondary)">http://127.0.0.1:8000</div>
+      <div class="method-btns" id="endpoint-btns">
+        <button class="mbtn active" data-ep="consensus" onclick="setEndpoint(this,'consensus')">POST /consensus</button>
+        <button class="mbtn" data-ep="compare" onclick="setEndpoint(this,'compare')">POST /compare</button>
+        <button class="mbtn" data-ep="methods" onclick="setEndpoint(this,'methods')">GET /methods</button>
+        <button class="mbtn" data-ep="health" onclick="setEndpoint(this,'health')">GET /health</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="body-card">
+    <div class="section-title">Request</div>
+
+    <div class="field-row">
+      <span class="label">patient_id</span>
+      <input type="text" id="patient-id" value="PAT-2024-00042" style="font-size:12px;height:30px;padding:4px 8px">
+    </div>
+    <div class="field-row">
+      <span class="label">session_id</span>
+      <input type="text" id="session-id" value="SESS-20240521-001" style="font-size:12px;height:30px;padding:4px 8px">
+    </div>
+    <div class="field-row" style="margin-bottom:12px">
+      <span class="label">method</span>
+      <div class="method-btns" id="method-btns">
+        <button class="mbtn active" data-m="bayesian" onclick="setMethod(this)">Bayesian</button>
+        <button class="mbtn" data-m="weighted" onclick="setMethod(this)">Weighted</button>
+        <button class="mbtn" data-m="majority" onclick="setMethod(this)">Majority</button>
+        <button class="mbtn" data-m="graph" onclick="setMethod(this)">Graph</button>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:4px">Agent predictions</div>
+    <div style="display:grid;grid-template-columns:90px 90px 1fr 80px 30px;gap:6px;margin-bottom:6px">
+      <span class="label">agent_id</span>
+      <span class="label">specialty</span>
+      <span class="label">diagnosis</span>
+      <span class="label">confidence</span>
+      <span></span>
+    </div>
+    <div class="agent-grid" id="agent-grid"></div>
+    <button class="add-btn" onclick="addAgent()"><i class="ti ti-plus" aria-hidden="true"></i> Add agent</button>
+
+    <div class="row" style="margin-top:14px;justify-content:space-between">
+      <label class="run-all-toggle">
+        <span class="toggle-track">
+          <input type="checkbox" id="run-all-input" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0">
+          <span class="toggle-thumb"></span>
+        </span>
+        run_all — compare all 4 methods
+      </label>
+      <button class="send-btn" id="send-btn" onclick="sendRequest()">
+        <i class="ti ti-send" aria-hidden="true"></i> Send request
+      </button>
+    </div>
+  </div>
+
+  <div id="status-wrap" style="display:none" class="card">
+    <div class="status-line" id="status-line">
+      <span class="dot dot-loading" id="status-dot"></span>
+      <span id="status-text">Sending…</span>
+    </div>
+  </div>
+
+  <div class="card result-block" id="result-block">
+    <div class="tabs-row" id="res-tabs">
+      <button class="tab active" onclick="showResTab('summary',this)">Summary</button>
+      <button class="tab" onclick="showResTab('agents',this)">Agent weights</button>
+      <button class="tab" id="compare-tab" onclick="showResTab('compare',this)" style="display:none">Compare</button>
+      <button class="tab" onclick="showResTab('raw',this)">Raw JSON</button>
+    </div>
+
+    <div id="res-summary">
+      <div class="res-metric-grid" id="metric-grid"></div>
+      <div style="margin-top:12px">
+        <div class="section-title">Diagnosis</div>
+        <div class="diagnosis-box" id="diag-box"></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="section-title">Recommendation</div>
+        <div class="rec-box" id="rec-box"></div>
+      </div>
+    </div>
+
+    <div id="res-agents" style="display:none">
+      <div class="agent-bars" id="agent-bars"></div>
+    </div>
+
+    <div id="res-compare" style="display:none">
+      <div class="compare-grid" id="compare-grid"></div>
+    </div>
+
+    <div id="res-raw" style="display:none">
+      <pre class="raw-pre" id="raw-pre"></pre>
+    </div>
+  </div>
+
+  <div class="card" id="err-block" style="display:none">
+    <div class="err-box" id="err-box"></div>
+  </div>
+
+</div>
+
+<script>
+var currentEndpoint = 'consensus';
+var currentMethod   = 'bayesian';
+var agentCount = 0;
+
+var defaultAgents = [
+  {id:'radiology-v2',    spec:'radiology', diag:'Type 2 Diabetes — retinopathy', conf:0.87},
+  {id:'diabetes-xgb-v3', spec:'diabetes',  diag:'Type 2 Diabetes — metabolic',   conf:0.91},
+  {id:'ecg-cnn-v1',      spec:'ecg',       diag:'Sinus tachycardia',             conf:0.79},
+  {id:'lab-gbm-v2',      spec:'lab',       diag:'HbA1c 7.2% — confirmed',        conf:0.94},
+];
+
+function init() {
+  defaultAgents.forEach(function(a){ addAgent(a); });
+}
+
+function addAgent(data) {
+  agentCount++;
+  var idx = agentCount;
+  var d = data || {id:'agent-'+idx, spec:'lab', diag:'Diagnosis', conf:0.80};
+  var grid = document.getElementById('agent-grid');
+  var row = document.createElement('div');
+  row.className = 'agent-row';
+  row.id = 'agent-row-'+idx;
+  row.innerHTML =
+    '<input type="text" id="ag-id-'+idx+'" value="'+d.id+'" placeholder="agent_id">'+
+    '<input type="text" id="ag-spec-'+idx+'" value="'+d.spec+'" placeholder="specialty">'+
+    '<input type="text" id="ag-diag-'+idx+'" value="'+d.diag+'" placeholder="diagnosis">'+
+    '<input type="range" min="0" max="100" step="1" value="'+Math.round(d.conf*100)+'" id="ag-conf-'+idx+'" oninput="updateConf('+idx+',this.value)">'+
+    '<span class="conf-val" id="ag-conf-val-'+idx+'">'+Math.round(d.conf*100)+'%</span>'+
+    '<button class="remove-btn" onclick="removeAgent('+idx+')" aria-label="Remove agent">×</button>';
+  grid.appendChild(row);
+}
+
+function updateConf(idx, v) {
+  document.getElementById('ag-conf-val-'+idx).textContent = Math.round(v)+'%';
+}
+
+function removeAgent(idx) {
+  var row = document.getElementById('agent-row-'+idx);
+  if(row) row.remove();
+}
+
+function setEndpoint(btn, ep) {
+  currentEndpoint = ep;
+  document.querySelectorAll('#endpoint-btns .mbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var showBody = (ep==='consensus'||ep==='compare');
+  document.getElementById('body-card').style.display = showBody ? '' : 'none';
+}
+
+function setMethod(btn) {
+  currentMethod = btn.dataset.m;
+  document.querySelectorAll('#method-btns .mbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function buildPayload() {
+  var agents = [];
+  document.querySelectorAll('.agent-row').forEach(function(row) {
+    var idx = row.id.replace('agent-row-','');
+    var id_el   = document.getElementById('ag-id-'+idx);
+    var spec_el = document.getElementById('ag-spec-'+idx);
+    var diag_el = document.getElementById('ag-diag-'+idx);
+    var conf_el = document.getElementById('ag-conf-'+idx);
+    if(id_el && spec_el && diag_el && conf_el) {
+      agents.push({
+        agent_id:   id_el.value,
+        specialty:  spec_el.value,
+        diagnosis:  diag_el.value,
+        confidence: Math.round(parseInt(conf_el.value)) / 100,
+      });
+    }
+  });
+  return {
+    patient_id: document.getElementById('patient-id').value || 'PAT-001',
+    session_id: document.getElementById('session-id').value || null,
+    method:     currentMethod,
+    run_all:    document.getElementById('run-all-input').checked,
+    predictions: agents,
+  };
+}
+
+async function sendRequest() {
+  var btn = document.getElementById('send-btn');
+  var sw  = document.getElementById('status-wrap');
+  var dot = document.getElementById('status-dot');
+  var stxt= document.getElementById('status-text');
+  var rb  = document.getElementById('result-block');
+  var eb  = document.getElementById('err-block');
+
+  rb.classList.remove('show');
+  eb.style.display='none';
+  sw.style.display='';
+  btn.disabled=true;
+  dot.className='dot dot-loading';
+
+  var BASE = 'http://127.0.0.1:8000';
+  var url, opts;
+
+  if(currentEndpoint==='health') {
+    url = BASE+'/health'; opts = {method:'GET'};
+    stxt.textContent = 'GET /health';
+  } else if(currentEndpoint==='methods') {
+    url = BASE+'/api/v1/consensus/methods'; opts = {method:'GET'};
+    stxt.textContent = 'GET /api/v1/consensus/methods';
+  } else if(currentEndpoint==='compare') {
+    url = BASE+'/api/v1/consensus/compare';
+    opts = {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload())};
+    stxt.textContent = 'POST /api/v1/consensus/compare';
+  } else {
+    url = BASE+'/api/v1/consensus';
+    opts = {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(buildPayload())};
+    stxt.textContent = 'POST /api/v1/consensus';
+  }
+
+  try {
+    var t0 = performance.now();
+    var res = await fetch(url, opts);
+    var ms = Math.round(performance.now()-t0);
+    var data = await res.json();
+
+    if(!res.ok) {
+      dot.className='dot dot-err';
+      stxt.textContent = res.status+' '+res.statusText+' — '+ms+'ms';
+      eb.style.display='';
+      document.getElementById('err-box').textContent = JSON.stringify(data, null, 2);
+    } else {
+      dot.className='dot dot-ok';
+      stxt.textContent = res.status+' OK — '+ms+'ms';
+      renderResult(data);
+      rb.classList.add('show');
+    }
+  } catch(e) {
+    dot.className='dot dot-err';
+    stxt.textContent = 'Network error — is the server running on :8000?';
+    eb.style.display='';
+    document.getElementById('err-box').textContent = e.message+'\n\nMake sure uvicorn is running:\n  uvicorn app.main:app --reload';
+  }
+  btn.disabled=false;
+}
+
+function renderResult(data) {
+  document.getElementById('raw-pre').textContent = JSON.stringify(data, null, 2);
+
+  if(!data.result) {
+    document.getElementById('metric-grid').innerHTML='';
+    document.getElementById('diag-box').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('rec-box').textContent = '';
+    document.getElementById('agent-bars').innerHTML='';
+    return;
+  }
+  var r = data.result;
+  var riskColors = {low:'risk-low',moderate:'risk-moderate',high:'risk-high',critical:'risk-critical'};
+  var riskClass  = riskColors[data.risk_level] || 'risk-moderate';
+
+  document.getElementById('metric-grid').innerHTML =
+    metric('Confidence', Math.round(r.fused_confidence*1000)/10+'%', '#534AB7') +
+    metric('Agreement',  Math.round(r.agreement_score*1000)/10+'%',  '#1D9E75') +
+    metric('Risk level', data.risk_level, '', riskClass) +
+    metric('Agents',     r.num_agents, '');
+
+  document.getElementById('diag-box').textContent = r.diagnosis;
+  document.getElementById('rec-box').textContent  = r.recommendation;
+
+  var bars = '';
+  (r.agent_weights||[]).forEach(function(w) {
+    var pct = Math.round(w.confidence*100);
+    bars += '<div class="bar-row">'+
+      '<span style="font-size:11px;color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+w.specialty+'</span>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div>'+
+      '<span style="font-size:12px;font-weight:500;text-align:right">'+pct+'%</span>'+
+    '</div>';
+  });
+  document.getElementById('agent-bars').innerHTML = bars;
+
+  var compareTab = document.getElementById('compare-tab');
+  if(data.all_results) {
+    compareTab.style.display='';
+    var entries = Object.entries(data.all_results);
+    var maxConf = Math.max.apply(null, entries.map(function(e){return e[1].fused_confidence;}));
+    var cg = '';
+    entries.forEach(function(e) {
+      var m=e[0], res=e[1];
+      var isWinner = Math.abs(res.fused_confidence-maxConf)<0.001;
+      cg += '<div class="compare-card'+(isWinner?' winner':'')+'">'+
+        '<div class="compare-method">'+m+(isWinner?' ★':'')+'</div>'+
+        '<div class="compare-conf">'+Math.round(res.fused_confidence*1000)/10+'%</div>'+
+        '<div class="compare-agree">agreement '+Math.round(res.agreement_score*1000)/10+'%</div>'+
+      '</div>';
+    });
+    document.getElementById('compare-grid').innerHTML = cg;
+  } else {
+    compareTab.style.display='none';
+  }
+
+  showResTab('summary', document.querySelector('#res-tabs .tab'));
+}
+
+function metric(label, val, color, extraClass) {
+  return '<div class="metric">'+
+    '<div class="metric-label">'+label+'</div>'+
+    '<div class="metric-val '+(extraClass||'')+'" style="'+(color?'color:'+color:'')+'">'+val+'</div>'+
+  '</div>';
+}
+
+function showResTab(name, btn) {
+  ['summary','agents','compare','raw'].forEach(function(t){
+    document.getElementById('res-'+t).style.display = t===name?'':'none';
+  });
+  document.querySelectorAll('#res-tabs .tab').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  else {
+    var tabs = document.querySelectorAll('#res-tabs .tab');
+    var map = {summary:0,agents:1,compare:2,raw:3};
+    if(tabs[map[name]]) tabs[map[name]].classList.add('active');
+  }
+}
+
+init();
+</script>

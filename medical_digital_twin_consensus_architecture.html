@@ -1,0 +1,540 @@
+
+<style>
+  h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-sans,'sans-serif');color:var(--color-text-primary);background:transparent}
+
+  .arch-wrap{padding:1rem 0;display:flex;flex-direction:column;gap:20px}
+  .section-title{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:8px}
+
+  /* LAYER CARDS */
+  .layer{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px 16px;background:var(--color-background-primary)}
+  .layer-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .layer-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--border-radius-md);white-space:nowrap}
+  .badge-frontend{background:var(--color-background-info);color:var(--color-text-info)}
+  .badge-gateway{background:#EAF3DE;color:#3B6D11}
+  .badge-orchestrator{background:#EEEDFE;color:#534AB7}
+  .badge-agents{background:#FAEEDA;color:#854F0B}
+  .badge-consensus{background:#FAECE7;color:#993C1D}
+  .badge-twin{background:#FBEAF0;color:#993556}
+
+  /* AGENT SWARM */
+  .agents-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:4px}
+  .agent-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 6px;text-align:center;cursor:pointer;transition:border-color .15s,transform .1s;background:var(--color-background-secondary)}
+  .agent-card:hover{border-color:var(--color-border-primary);transform:translateY(-2px)}
+  .agent-card.active{border:1.5px solid #7F77DD;background:#EEEDFE}
+  .agent-icon{font-size:20px;margin-bottom:4px}
+  .agent-name{font-size:11px;font-weight:500;color:var(--color-text-primary)}
+  .agent-status{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+  .agent-conf{font-size:12px;font-weight:500;color:#534AB7;margin-top:3px}
+
+  /* SWARM CANVAS */
+  #swarm-canvas{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:block;width:100%;height:200px}
+
+  /* CONSENSUS PANEL */
+  .consensus-methods{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .method-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;text-align:center;cursor:pointer;background:var(--color-background-secondary);transition:all .15s}
+  .method-card:hover{border-color:var(--color-border-primary)}
+  .method-card.active{border:1.5px solid #D85A30;background:#FAECE7}
+  .method-label{font-size:11px;font-weight:500;color:var(--color-text-primary)}
+  .method-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+
+  /* DIGITAL TWIN */
+  .twin-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+  .twin-module{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;background:var(--color-background-secondary)}
+  .twin-module-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .vital-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px}
+  .vital-row:last-child{border-bottom:none}
+  .vital-val{font-weight:500}
+  .vital-ok{color:#1D9E75}
+  .vital-warn{color:#BA7517}
+  .vital-crit{color:#E24B4A}
+
+  /* PROGRESS BAR */
+  .prog-wrap{background:var(--color-background-secondary);border-radius:4px;height:6px;overflow:hidden;margin-top:4px}
+  .prog-bar{height:100%;border-radius:4px;transition:width .4s ease}
+  .prog-blue{background:#378ADD}
+  .prog-amber{background:#EF9F27}
+  .prog-coral{background:#D85A30}
+  .prog-teal{background:#1D9E75}
+  .prog-purple{background:#7F77DD}
+
+  /* FLOW ARROWS */
+  .flow-connector{display:flex;justify-content:center;align-items:center;height:20px;gap:6px;color:var(--color-text-tertiary);font-size:11px}
+  .flow-dot{width:4px;height:4px;border-radius:50%;background:var(--color-border-secondary);animation:pulse-dot 1.4s ease-in-out infinite}
+  .flow-dot:nth-child(2){animation-delay:.2s}
+  .flow-dot:nth-child(3){animation-delay:.4s}
+  @keyframes pulse-dot{0%,80%,100%{transform:scale(1);opacity:.6}40%{transform:scale(1.6);opacity:1}}
+
+  /* RESULT PANEL */
+  .result-box{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;background:var(--color-background-secondary);margin-top:4px}
+  .result-diagnosis{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
+  .result-detail{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+  .confidence-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+  .conf-label{font-size:11px;color:var(--color-text-tertiary);width:90px}
+  .conf-bar-wrap{flex:1;background:var(--color-background-primary);border-radius:4px;height:8px;overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+  .conf-bar{height:100%;border-radius:4px;transition:width .6s ease}
+
+  /* OPEN SOURCE CHIPS */
+  .oss-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .oss-chip{font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+  .oss-chip:hover{border-color:var(--color-border-primary);color:var(--color-text-primary)}
+  .oss-chip.purple{border-color:#AFA9EC;color:#534AB7;background:#EEEDFE}
+  .oss-chip.teal{border-color:#5DCAA5;color:#0F6E56;background:#E1F5EE}
+  .oss-chip.amber{border-color:#EF9F27;color:#854F0B;background:#FAEEDA}
+
+  /* SIMULATION CONTROLS */
+  .sim-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .sim-btn{padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+  .sim-btn:hover{background:var(--color-background-secondary)}
+  .sim-btn.primary{background:#7F77DD;color:#fff;border-color:#534AB7}
+  .sim-btn.primary:hover{background:#534AB7}
+  .sim-btn.running{background:#1D9E75;color:#fff;border-color:#0F6E56}
+
+  /* TICK */
+  .status-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .dot-active{background:#1D9E75;animation:blink 1s infinite}
+  .dot-idle{background:var(--color-border-secondary)}
+  .dot-processing{background:#EF9F27;animation:blink .5s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:12px}
+  .tab{padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;transition:all .15s;background:transparent;border-left:none;border-right:none;border-top:none}
+  .tab.active{color:var(--color-text-primary);border-bottom-color:#7F77DD}
+  .tab:hover{color:var(--color-text-primary)}
+</style>
+
+<h2 class="sr-only">Medical Digital Twin + Multi-Agent Consensus Architecture — interactive system diagram</h2>
+
+<div class="arch-wrap">
+
+  <!-- HEADER -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:16px;font-weight:500;color:var(--color-text-primary)">AI Clinic — Medical Digital Twin</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Multi-Agent Consensus · OpenHuman Runtime · MiroFish Swarm</div>
+    </div>
+    <div class="oss-chips">
+      <span class="oss-chip purple" onclick="openLink('https://github.com/tinyhumansai/openhuman')">OpenHuman Runtime ↗</span>
+      <span class="oss-chip amber" onclick="openLink('https://github.com/666ghj/MiroFish')">MiroFish Engine ↗</span>
+      <span class="oss-chip teal" onclick="openLink('https://github.com/xuankhanh1612/ai-doctor-admin')">AI Doctor Admin ↗</span>
+    </div>
+  </div>
+
+  <!-- LAYER 1: FRONTEND + DIGITAL TWIN -->
+  <div class="layer">
+    <div class="layer-header">
+      <span class="layer-badge badge-frontend"><i class="ti ti-device-desktop" aria-hidden="true"></i> Frontend Super App</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)">Next.js · Tailwind · Zustand · Three.js</span>
+      <span class="status-dot dot-active" style="margin-left:auto"></span>
+    </div>
+    <div class="tabs" id="twin-tabs">
+      <button class="tab active" onclick="switchTab('vitals')">Digital twin vitals</button>
+      <button class="tab" onclick="switchTab('sim')">Mirofish simulation</button>
+      <button class="tab" onclick="switchTab('modules')">OpenHuman modules</button>
+    </div>
+
+    <!-- TAB: VITALS -->
+    <div id="tab-vitals">
+      <div class="twin-grid">
+        <div class="twin-module">
+          <div class="twin-module-title"><i class="ti ti-heart-rate-monitor" aria-hidden="true"></i> Real-time vitals</div>
+          <div class="vital-row"><span>Heart rate</span><span class="vital-val vital-ok" id="hr-val">78 bpm</span></div>
+          <div class="vital-row"><span>Blood pressure</span><span class="vital-val vital-ok" id="bp-val">120/80</span></div>
+          <div class="vital-row"><span>Blood glucose</span><span class="vital-val vital-warn" id="bg-val">142 mg/dL</span></div>
+          <div class="vital-row"><span>SpO₂</span><span class="vital-val vital-ok" id="spo2-val">98%</span></div>
+          <div class="vital-row"><span>Body temp</span><span class="vital-val vital-ok" id="temp-val">36.8°C</span></div>
+        </div>
+        <div class="twin-module">
+          <div class="twin-module-title"><i class="ti ti-chart-radar" aria-hidden="true"></i> OpenHuman body map</div>
+          <div style="display:flex;justify-content:center;align-items:center;height:110px">
+            <svg viewBox="0 0 120 130" width="90" height="100">
+              <!-- Body silhouette -->
+              <ellipse cx="60" cy="18" rx="14" ry="16" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+              <rect x="44" y="34" width="32" height="44" rx="8" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+              <!-- Arms -->
+              <rect x="24" y="36" width="18" height="8" rx="4" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+              <rect x="78" y="36" width="18" height="8" rx="4" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+              <!-- Legs -->
+              <rect x="44" y="78" width="14" height="36" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+              <rect x="62" y="78" width="14" height="36" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1"/>
+              <!-- Highlight heart zone -->
+              <circle cx="60" cy="50" r="7" fill="#F4C0D1" stroke="#D4537E" stroke-width="1" opacity=".8">
+                <animate attributeName="r" values="7;9;7" dur="1s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values=".8;1;.8" dur="1s" repeatCount="indefinite"/>
+              </circle>
+              <!-- Glucose highlight on liver zone -->
+              <ellipse cx="68" cy="57" rx="6" ry="4" fill="#FAC775" stroke="#BA7517" stroke-width="1" opacity=".7"/>
+              <text x="60" y="117" text-anchor="middle" font-size="8" fill="#0F6E56" font-family="sans-serif">OpenHuman</text>
+            </svg>
+          </div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);text-align:center">Pink = cardiac · Amber = metabolic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: MIROFISH SIM -->
+    <div id="tab-sim" style="display:none">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Mirofish swarm engine — simulates agent interaction như bầy cá (fish school behavior)</div>
+      <canvas id="swarm-canvas" width="640" height="200"></canvas>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+        <button class="sim-btn primary" id="swarm-btn" onclick="toggleSwarm()"><i class="ti ti-player-play" aria-hidden="true"></i> <span id="swarm-btn-text">Start swarm</span></button>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)">
+          <span>Agents</span>
+          <input type="range" min="5" max="30" value="15" id="agent-count-slider" style="width:80px" oninput="updateAgentCount(this.value)">
+          <span id="agent-count-label" style="min-width:20px">15</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)">
+          <span>Cohesion</span>
+          <input type="range" min="1" max="10" value="5" id="cohesion-slider" style="width:80px" oninput="setCohesion(this.value)">
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--color-text-tertiary)">● Radiology &nbsp; ● Diabetes &nbsp; ● ECG &nbsp; ● Oncology &nbsp; ● Lab — mỗi màu = 1 AI agent chuyên khoa đang trao đổi</div>
+    </div>
+
+    <!-- TAB: OPENHUMAN MODULES -->
+    <div id="tab-modules" style="display:none">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div class="twin-module"><div class="twin-module-title">Organ system</div><div style="font-size:11px;color:var(--color-text-secondary)">Heart · Lung · Liver · Kidney</div><div class="prog-wrap"><div class="prog-bar prog-teal" style="width:88%"></div></div></div>
+        <div class="twin-module"><div class="twin-module-title">Metabolic sim</div><div style="font-size:11px;color:var(--color-text-secondary)">Glucose · Insulin · Lipids</div><div class="prog-wrap"><div class="prog-bar prog-amber" style="width:72%"></div></div></div>
+        <div class="twin-module"><div class="twin-module-title">Neural model</div><div style="font-size:11px;color:var(--color-text-secondary)">CNS · Autonomic · Pain</div><div class="prog-wrap"><div class="prog-bar prog-purple" style="width:45%"></div></div></div>
+        <div class="twin-module"><div class="twin-module-title">Imaging overlay</div><div style="font-size:11px;color:var(--color-text-secondary)">CT · MRI · X-ray fusion</div><div class="prog-wrap"><div class="prog-bar prog-blue" style="width:63%"></div></div></div>
+        <div class="twin-module"><div class="twin-module-title">Genomics</div><div style="font-size:11px;color:var(--color-text-secondary)">SNP · Variant calling</div><div class="prog-wrap"><div class="prog-bar prog-coral" style="width:30%"></div></div></div>
+        <div class="twin-module"><div class="twin-module-title">Drug simulation</div><div style="font-size:11px;color:var(--color-text-secondary)">PK/PD · Interactions</div><div class="prog-wrap"><div class="prog-bar prog-teal" style="width:55%"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-connector"><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div><span style="font-size:10px">WebSocket / REST</span><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div></div>
+
+  <!-- LAYER 2: GATEWAY + ORCHESTRATOR -->
+  <div class="layer">
+    <div class="layer-header">
+      <span class="layer-badge badge-gateway"><i class="ti ti-route" aria-hidden="true"></i> Gateway API</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)">FastAPI · Redis · Kafka</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="twin-module"><div class="twin-module-title">Rate limiter & auth</div><div style="font-size:11px;color:var(--color-text-secondary)">JWT · OAuth2 · HIPAA logging</div></div>
+      <div class="twin-module"><div class="twin-module-title">Kafka event stream</div><div style="font-size:11px;color:var(--color-text-secondary)">Patient stream → realtime inference</div></div>
+    </div>
+  </div>
+
+  <div class="flow-connector"><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div><span style="font-size:10px">AI Orchestrator dispatch</span><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div></div>
+
+  <!-- LAYER 3: AI AGENTS -->
+  <div class="layer">
+    <div class="layer-header">
+      <span class="layer-badge badge-agents"><i class="ti ti-robot" aria-hidden="true"></i> Medical AI Agents — Swarm</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)">PyTorch · XGBoost · MONAI · YOLOv8</span>
+      <span class="status-dot dot-processing" id="agents-dot" style="margin-left:auto"></span>
+    </div>
+    <div class="agents-grid">
+      <div class="agent-card active" id="ag-radiology" onclick="selectAgent('radiology')">
+        <div class="agent-icon">🩻</div>
+        <div class="agent-name">Radiology</div>
+        <div class="agent-status">YOLO + MONAI</div>
+        <div class="agent-conf" id="ag-radiology-conf">87%</div>
+      </div>
+      <div class="agent-card" id="ag-diabetes" onclick="selectAgent('diabetes')">
+        <div class="agent-icon">💉</div>
+        <div class="agent-name">Diabetes</div>
+        <div class="agent-status">XGBoost + SHAP</div>
+        <div class="agent-conf" id="ag-diabetes-conf">91%</div>
+      </div>
+      <div class="agent-card" id="ag-ecg" onclick="selectAgent('ecg')">
+        <div class="agent-icon">❤️</div>
+        <div class="agent-name">ECG</div>
+        <div class="agent-status">CNN + BiLSTM</div>
+        <div class="agent-conf" id="ag-ecg-conf">79%</div>
+      </div>
+      <div class="agent-card" id="ag-oncology" onclick="selectAgent('oncology')">
+        <div class="agent-icon">🔬</div>
+        <div class="agent-name">Oncology</div>
+        <div class="agent-status">HuggingFace</div>
+        <div class="agent-conf" id="ag-oncology-conf">83%</div>
+      </div>
+      <div class="agent-card" id="ag-lab" onclick="selectAgent('lab')">
+        <div class="agent-icon">🧪</div>
+        <div class="agent-name">Lab AI</div>
+        <div class="agent-status">Gradient Boost</div>
+        <div class="agent-conf" id="ag-lab-conf">94%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-connector"><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div><span style="font-size:10px">Confidence scores → Consensus Engine</span><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div></div>
+
+  <!-- LAYER 4: CONSENSUS -->
+  <div class="layer">
+    <div class="layer-header">
+      <span class="layer-badge badge-consensus"><i class="ti ti-git-merge" aria-hidden="true"></i> Consensus Engine</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)">Bayesian · Majority vote · Graph reasoning</span>
+    </div>
+    <div class="section-title">Phương pháp tổng hợp</div>
+    <div class="consensus-methods">
+      <div class="method-card active" id="cm-bayes" onclick="selectMethod('bayes')">
+        <div class="method-label">Bayesian fusion</div>
+        <div class="method-sub">Prior + likelihood</div>
+      </div>
+      <div class="method-card" id="cm-vote" onclick="selectMethod('vote')">
+        <div class="method-label">Majority vote</div>
+        <div class="method-sub">5-agent quorum</div>
+      </div>
+      <div class="method-card" id="cm-weight" onclick="selectMethod('weight')">
+        <div class="method-label">Weighted conf.</div>
+        <div class="method-sub">Specialty × score</div>
+      </div>
+      <div class="method-card" id="cm-graph" onclick="selectMethod('graph')">
+        <div class="method-label">Graph reasoning</div>
+        <div class="method-sub">GNN knowledge</div>
+      </div>
+    </div>
+
+    <!-- CONFIDENCE BARS -->
+    <div style="margin-top:12px">
+      <div class="section-title">Agent confidence breakdown</div>
+      <div id="conf-bars" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div class="confidence-row"><span class="conf-label">🩻 Radiology</span><div class="conf-bar-wrap"><div class="conf-bar prog-purple" style="width:87%"></div></div><span style="font-size:11px;min-width:28px;text-align:right">87%</span></div>
+        <div class="confidence-row"><span class="conf-label">💉 Diabetes</span><div class="conf-bar-wrap"><div class="conf-bar prog-teal" style="width:91%"></div></div><span style="font-size:11px;min-width:28px;text-align:right">91%</span></div>
+        <div class="confidence-row"><span class="conf-label">❤️ ECG</span><div class="conf-bar-wrap"><div class="conf-bar prog-coral" style="width:79%"></div></div><span style="font-size:11px;min-width:28px;text-align:right">79%</span></div>
+        <div class="confidence-row"><span class="conf-label">🔬 Oncology</span><div class="conf-bar-wrap"><div class="conf-bar prog-amber" style="width:83%"></div></div><span style="font-size:11px;min-width:28px;text-align:right">83%</span></div>
+        <div class="confidence-row"><span class="conf-label">🧪 Lab AI</span><div class="conf-bar-wrap"><div class="conf-bar prog-blue" style="width:94%"></div></div><span style="font-size:11px;min-width:28px;text-align:right">94%</span></div>
+      </div>
+    </div>
+
+    <!-- FINAL RESULT -->
+    <div style="margin-top:12px">
+      <div class="section-title">Kết quả hội đồng</div>
+      <div class="result-box">
+        <div class="result-diagnosis" id="result-diag">⚠️ Type 2 Diabetes — Metabolic syndrome risk (high)</div>
+        <div class="result-detail" id="result-detail">Bayesian fusion: Glucose 142 mg/dL (↑), HbA1c elevated, cardiac load normal. Lab AI và Diabetes AI đồng thuận cao. Khuyến nghị: metformin + lifestyle intervention + theo dõi 3 tháng.</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+          <span style="font-size:11px;color:var(--color-text-tertiary)">Consensus confidence</span>
+          <div class="conf-bar-wrap" style="flex:1"><div class="conf-bar prog-teal" id="final-conf-bar" style="width:87%"></div></div>
+          <span style="font-size:12px;font-weight:500" id="final-conf-val">87%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-connector"><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div><span style="font-size:10px">Doctor Review Dashboard</span><div class="flow-dot"></div><div class="flow-dot"></div><div class="flow-dot"></div></div>
+
+  <!-- LAYER 5: DOCTOR REVIEW -->
+  <div class="layer">
+    <div class="layer-header">
+      <span class="layer-badge badge-twin"><i class="ti ti-stethoscope" aria-hidden="true"></i> Doctor Review</span>
+      <span style="font-size:11px;color:var(--color-text-tertiary)">SHAP explainability · Audit trail · Override</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="sim-btn primary" onclick="sendPrompt('Tôi cần code SHAP explainability cho XGBoost diabetes model trong AI Clinic này')"><i class="ti ti-chart-bar" aria-hidden="true"></i> SHAP explain ↗</button>
+      <button class="sim-btn" onclick="sendPrompt('Tôi muốn xây dựng FastAPI endpoint cho consensus engine với Bayesian fusion')"><i class="ti ti-api" aria-hidden="true"></i> Build consensus API ↗</button>
+      <button class="sim-btn" onclick="sendPrompt('Hãy giúp tôi tích hợp OpenHuman Runtime vào Next.js frontend cho Digital Twin')"><i class="ti ti-cube" aria-hidden="true"></i> Integrate OpenHuman ↗</button>
+      <button class="sim-btn" onclick="sendPrompt('Implement MiroFish swarm behavior cho multi-agent AI doctor simulation bằng Three.js')"><i class="ti ti-fish" aria-hidden="true"></i> MiroFish Three.js ↗</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---- TAB SWITCHING ----
+function switchTab(name) {
+  ['vitals','sim','modules'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? '' : 'none';
+  });
+  document.querySelectorAll('#twin-tabs .tab').forEach((b,i) => {
+    b.classList.toggle('active', ['vitals','sim','modules'][i]===name);
+  });
+  if(name==='sim' && !swarmRunning) initSwarm();
+}
+
+// ---- VITALS ANIMATION ----
+var vitals = {
+  hr: {base:78, range:5, unit:' bpm', el:'hr-val', cls:'ok'},
+  bg: {base:142, range:8, unit:' mg/dL', el:'bg-val', cls:'warn'},
+  spo2: {base:98, range:1, unit:'%', el:'spo2-val', cls:'ok'},
+  temp: {base:36.8, range:0.2, unit:'°C', el:'temp-val', cls:'ok'},
+};
+function updateVitals() {
+  Object.entries(vitals).forEach(([k,v]) => {
+    var val = (v.base + (Math.random()-.5)*v.range);
+    var txt = Number.isInteger(v.base) ? Math.round(val)+v.unit : val.toFixed(1)+v.unit;
+    document.getElementById(v.el).textContent = txt;
+  });
+}
+setInterval(updateVitals, 1800);
+
+// ---- AGENT SELECTION ----
+var agentData = {
+  radiology:{conf:87,note:'X-ray — no acute pulmonary findings'},
+  diabetes:{conf:91,note:'Fasting glucose 142, insulin resistance'},
+  ecg:{conf:79,note:'Sinus rhythm, mild tachycardia'},
+  oncology:{conf:83,note:'No malignancy markers detected'},
+  lab:{conf:94,note:'HbA1c 7.2%, LDL borderline'}
+};
+function selectAgent(id) {
+  document.querySelectorAll('.agent-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('ag-'+id).classList.add('active');
+}
+// Randomize agent confs
+setInterval(function() {
+  Object.entries(agentData).forEach(([k,v]) => {
+    var c = Math.round(v.conf + (Math.random()-.5)*3);
+    document.getElementById('ag-'+k+'-conf').textContent = c+'%';
+  });
+}, 2200);
+
+// ---- CONSENSUS METHOD ----
+var methods = {
+  bayes: {diag:'⚠️ Type 2 Diabetes — Metabolic syndrome risk (high)', detail:'Bayesian fusion: Glucose 142 mg/dL (↑), HbA1c elevated, cardiac load normal. Lab AI và Diabetes AI đồng thuận cao. Khuyến nghị: metformin + lifestyle intervention.', conf:87},
+  vote: {diag:'⚠️ Type 2 Diabetes (4/5 agents agree)', detail:'Majority vote: 4 trên 5 agent đồng thuận. Radiology và Lab AI bỏ phiếu cao nhất. ECG agent abstain. Quorum đạt ngưỡng 80%.', conf:82},
+  weight: {diag:'⚠️ Pre-diabetic → T2D transition', detail:'Weighted confidence: Lab AI (94%) × Diabetes AI (91%) = combined score 0.923. Radiology weight thấp hơn cho metabolic case. Adjusted final: 88%.', conf:88},
+  graph: {diag:'⚠️ Metabolic syndrome cluster — T2D + CVD risk', detail:'Graph reasoning: GNN phát hiện cluster triệu chứng — metabolic + inflammatory markers liên kết với CVD risk node. Knowledge graph depth=3.', conf:85}
+};
+function selectMethod(m) {
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('cm-'+m).classList.add('active');
+  var d = methods[m];
+  document.getElementById('result-diag').textContent = d.diag;
+  document.getElementById('result-detail').textContent = d.detail;
+  document.getElementById('final-conf-bar').style.width = d.conf+'%';
+  document.getElementById('final-conf-val').textContent = d.conf+'%';
+}
+
+// ---- MIROFISH SWARM ----
+var canvas, ctx, boids=[], swarmRunning=false, animId=null;
+var COLORS=['#7F77DD','#1D9E75','#D85A30','#BA7517','#378ADD'];
+var NAMES=['Radiology','Diabetes','ECG','Oncology','Lab'];
+var cohesionVal=5;
+
+function setCohesion(v){ cohesionVal=parseInt(v); }
+function updateAgentCount(v){ document.getElementById('agent-count-label').textContent=v; reinitBoids(parseInt(v)); }
+
+function reinitBoids(n){
+  if(!canvas) return;
+  boids=[];
+  var perSpecies=Math.ceil(n/5);
+  for(var s=0;s<5;s++){
+    for(var i=0;i<perSpecies && boids.length<n;i++){
+      boids.push({
+        x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+        vx:(Math.random()-.5)*2, vy:(Math.random()-.5)*2,
+        species:s
+      });
+    }
+  }
+}
+
+function initSwarm(){
+  canvas = document.getElementById('swarm-canvas');
+  if(!canvas) return;
+  ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth || 640;
+  reinitBoids(15);
+}
+
+function stepBoids(){
+  if(!canvas) return;
+  var W=canvas.width, H=canvas.height;
+  var n=boids.length;
+  var coh = cohesionVal/5;
+  for(var i=0;i<n;i++){
+    var b=boids[i];
+    var ax=0,ay=0,sx=0,sy=0,cx=0,cy=0,cnt=0;
+    for(var j=0;j<n;j++){
+      if(i===j) continue;
+      var dx=boids[j].x-b.x, dy=boids[j].y-b.y;
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<60){
+        // separation
+        if(d<20){ sx-=dx/d; sy-=dy/d; }
+        // alignment
+        ax+=boids[j].vx; ay+=boids[j].vy;
+        // cohesion
+        cx+=boids[j].x; cy+=boids[j].y;
+        cnt++;
+      }
+    }
+    if(cnt>0){
+      ax/=cnt; ay/=cnt;
+      cx=cx/cnt-b.x; cy=cy/cnt-b.y;
+      b.vx += sx*0.05 + ax*0.03 + cx*0.004*coh;
+      b.vy += sy*0.05 + ay*0.03 + cy*0.004*coh;
+    }
+    // speed limit
+    var spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);
+    if(spd>2.5){ b.vx=b.vx/spd*2.5; b.vy=b.vy/spd*2.5; }
+    b.x+=b.vx; b.y+=b.vy;
+    if(b.x<0)b.x=W; if(b.x>W)b.x=0;
+    if(b.y<0)b.y=H; if(b.y>H)b.y=0;
+  }
+}
+
+function drawBoids(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Draw interaction lines between same-species
+  ctx.lineWidth=0.5;
+  for(var i=0;i<boids.length;i++){
+    for(var j=i+1;j<boids.length;j++){
+      if(boids[i].species===boids[j].species){
+        var dx=boids[j].x-boids[i].x, dy=boids[j].y-boids[i].y;
+        var d=Math.sqrt(dx*dx+dy*dy);
+        if(d<80){
+          ctx.beginPath();
+          ctx.strokeStyle=COLORS[boids[i].species];
+          ctx.globalAlpha=0.15*(1-d/80);
+          ctx.moveTo(boids[i].x,boids[i].y);
+          ctx.lineTo(boids[j].x,boids[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  // Draw boids as triangles
+  ctx.globalAlpha=1;
+  for(var i=0;i<boids.length;i++){
+    var b=boids[i];
+    var angle=Math.atan2(b.vy,b.vx);
+    ctx.save();
+    ctx.translate(b.x,b.y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(8,0);
+    ctx.lineTo(-5,4);
+    ctx.lineTo(-5,-4);
+    ctx.closePath();
+    ctx.fillStyle=COLORS[b.species];
+    ctx.globalAlpha=0.85;
+    ctx.fill();
+    ctx.restore();
+  }
+  // Legend
+  ctx.globalAlpha=0.7;
+  ctx.font='10px sans-serif';
+  NAMES.forEach(function(n,i){
+    ctx.fillStyle=COLORS[i];
+    ctx.fillText('● '+n, 8+i*116, canvas.height-8);
+  });
+}
+
+function swarmLoop(){
+  stepBoids(); drawBoids();
+  animId=requestAnimationFrame(swarmLoop);
+}
+
+function toggleSwarm(){
+  if(!canvas) initSwarm();
+  if(!swarmRunning){
+    swarmRunning=true;
+    document.getElementById('swarm-btn').className='sim-btn running';
+    document.getElementById('swarm-btn-text').textContent='Stop swarm';
+    swarmLoop();
+  } else {
+    swarmRunning=false;
+    document.getElementById('swarm-btn').className='sim-btn primary';
+    document.getElementById('swarm-btn-text').textContent='Start swarm';
+    if(animId) cancelAnimationFrame(animId);
+  }
+}
+</script>
